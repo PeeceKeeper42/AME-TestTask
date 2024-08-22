@@ -1,3 +1,7 @@
+# Build directory
+.build/
+_distrib/
+
 # C++ objects and libs
 *.slo
 *.lo
