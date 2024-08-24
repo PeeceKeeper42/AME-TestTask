@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>751</width>
+    <height>487</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="spacing">
+     <number>2</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="currentIndex">
+       <number>1</number>
+      </property>
+      <widget class="QWidget" name="tabWelcome">
+       <attribute name="title">
+        <string>Встречающий виджет</string>
+       </attribute>
+      </widget>
+      <widget class="QWidget" name="tabFirstTask">
+       <attribute name="icon">
+        <iconset resource="../../_resources/resources_main.qrc">
+         <normaloff>:/icons/image.png</normaloff>:/icons/image.png</iconset>
+       </attribute>
+       <attribute name="title">
+        <string>Задание 1</string>
+       </attribute>
+      </widget>
+      <widget class="QWidget" name="tabSecondTask">
+       <attribute name="icon">
+        <iconset resource="../../_resources/resources_main.qrc">
+         <normaloff>:/icons/data.png</normaloff>:/icons/data.png</iconset>
+       </attribute>
+       <attribute name="title">
+        <string>Задание 2</string>
+       </attribute>
+      </widget>
+      <widget class="QWidget" name="tabThirdTask">
+       <attribute name="icon">
+        <iconset resource="../../_resources/resources_main.qrc">
+         <normaloff>:/icons/videocamera.png</normaloff>:/icons/videocamera.png</iconset>
+       </attribute>
+       <attribute name="title">
+        <string>Задание 3</string>
+       </attribute>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>751</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="defaultUp">
+    <bool>true</bool>
+   </property>
+   <widget class="QMenu" name="menu">
+    <property name="layoutDirection">
+     <enum>Qt::RightToLeft</enum>
+    </property>
+    <property name="title">
+     <string>О программе</string>
+    </property>
+    <property name="icon">
+     <iconset resource="../../_resources/resources_main.qrc">
+      <normaloff>:/icons/about.png</normaloff>:/icons/about.png</iconset>
+    </property>
+   </widget>
+   <addaction name="menu"/>
+  </widget>
+ </widget>
+ <resources>
+  <include location="../../_resources/resources_main.qrc"/>
+ </resources>
+ <connections/>
+</ui>
