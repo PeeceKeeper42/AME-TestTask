@@ -8,6 +8,8 @@ namespace Ui {
 class ImageViewer;
 }
 //==============================================================================
+enum ImageViewerMode: quint8;
+//==============================================================================
 class ImageViewer : public QWidget
 {
     Q_OBJECT
@@ -18,6 +20,47 @@ public:
 
 private:
     Ui::ImageViewer *ui;
+    ImageViewerMode m_currentMode;
+
+    const qreal scaleMultiplier = 1.15;
+
+    qreal m_currentScale = 1.00;
+    bool m_isDragging = false;
+    bool m_isCreatingPolygon = false;
+    bool m_isEditingPolygon = false;
+    bool m_pictureLoaded = false;
+
+
+    void initialize();
+    void createConnections();
+    void updateUi();
+    void showMode();
+    void setMode(ImageViewerMode mode);
+
+private slots:
+    void onBtnLoadImage();
+
+    void onBtnCreatePolygon();
+    void onBtnCreatePolygonCancel();
+    void onBtnEditPolygon();
+    void onBtnEditPolygonCancel();
+
+protected:
+    bool eventFilter(QObject *obj, QEvent *event) override;
+    void wheelEvent(QWheelEvent *event) override;
+
+    bool eventDragFilter(QObject *obj, QEvent *event);
+    bool eventCreateFilter(QObject *obj, QEvent *event);
+    bool eventEditFilter(QObject *obj, QEvent *event);
 };
+//==============================================================================
+enum ImageViewerMode: quint8
+{
+    Mode_None       = 0,
+    Mode_Draging    = 1,
+    Mode_Creating   = 2,
+    Mode_Editing    = 3,
+};
+
 //==============================================================================
 #endif // IMAGEVIEWER_H
