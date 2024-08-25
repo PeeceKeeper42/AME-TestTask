@@ -20,13 +20,27 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = nullptr);
+    explicit MainWindow(QString prjName = QString(),
+                        QString authorName = QString(),
+                        QString authorLink = QString(),
+                        QString prjLink = QString(),
+                        QString buildDate = QString(),
+                        QWidget *parent = nullptr);
     ~MainWindow();
 
     void initialize();
 
 private:
     Ui::MainWindow *ui;
+
+    QString m_prjName;
+    QString m_authorName;
+    QString m_authorLink;
+    QString m_prjLink;
+    QString m_buildDate;
+
+private slots:
+    void showAboutMeWindow(bool isChecked);
 };
 //==============================================================================
 #endif // MAINWINDOW_H

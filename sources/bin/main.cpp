@@ -9,13 +9,11 @@ int main(int argc, char *argv[]) {
 
     QApplication a(argc, argv);
 
-    qDebug() << CMAKE_PROJECT_NAME;
-    qDebug() << GIT_AUTHOR;
-    qDebug() << GIT_AUTHOR_LINK;
-    qDebug() << GIT_PROJECT_LINK;
-    qDebug() << BUILD_DATE;
-
-    MainWindow w;
+    MainWindow w(QString(CMAKE_PROJECT_NAME),
+                 QString(GIT_AUTHOR),
+                 QString(GIT_AUTHOR_LINK),
+                 QString(GIT_PROJECT_LINK),
+                 QString(BUILD_DATE));
     w.setObjectName("MainWindow");
     w.show();
     return a.exec();
