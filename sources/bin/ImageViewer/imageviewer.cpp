@@ -35,6 +35,11 @@ void ImageViewer::initialize()
     setMode(Mode_None);
 
     ui->le->clear();
+
+    m_polygonPoints.clear();
+    m_vertexItems.clear();
+    m_edgeItems.clear();
+    m_polygons.clear();
 }
 //==============================================================================
 void ImageViewer::createConnections()
@@ -80,12 +85,26 @@ void ImageViewer::onBtnLoadImage()
     m_currentScale = 1.00;
     m_pictureLoaded = true;
     setMode(Mode_None);
+
+    m_polygonPoints.clear();
+    m_vertexItems.clear();
+    m_edgeItems.clear();
+    m_polygons.clear();
 }
 //==============================================================================
 // Конечно можно было просто лямбды использовать, но ожидалась доп логика.
-void ImageViewer::onBtnCreatePolygon() { setMode(Mode_Creating); }
+void ImageViewer::onBtnCreatePolygon()
+{
+    setMode(Mode_Creating);
+    m_polygonPoints.clear();
+    m_vertexItems.clear();
+    m_edgeItems.clear();
+}
 //==============================================================================
-void ImageViewer::onBtnCreatePolygonCancel() { setMode(Mode_None); }
+void ImageViewer::onBtnCreatePolygonCancel()
+{
+    cancelPolygon();
+}
 //==============================================================================
 void ImageViewer::onBtnEditPolygon() { setMode(Mode_Editing); }
 //==============================================================================
@@ -110,7 +129,8 @@ bool ImageViewer::eventDragFilter(QObject *obj, QEvent *event)
     if (event->type() == QEvent::MouseButtonPress)
     {
         if (mouseEvent->button() == Qt::LeftButton &&
-            QApplication::keyboardModifiers() == Qt::ControlModifier)
+            QApplication::keyboardModifiers() == Qt::ControlModifier &&
+            m_currentMode == Mode_None)
         {
             ui->gv->setDragMode(QGraphicsView::ScrollHandDrag);
             setMode(Mode_Draging);
@@ -155,10 +175,83 @@ bool ImageViewer::eventDragFilter(QObject *obj, QEvent *event)
 //==============================================================================
 bool ImageViewer::eventCreateFilter(QObject *obj, QEvent *event)
 {
-    Q_UNUSED(obj)
-    Q_UNUSED(event)
+    if (obj != ui->gv || m_currentMode != Mode_Creating) return false;
+
+    QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
+    if (event->type() == QEvent::MouseButtonPress && mouseEvent->button() == Qt::LeftButton)
+    {
+        QPointF scenePos = ui->gv->mapToScene(mouseEvent->pos());
+
+        if (!m_polygonPoints.isEmpty() && (scenePos - m_polygonPoints.first()).manhattanLength() < 100)
+        {
+            completePolygon();
+            return true;
+        }
+
+        addPolygonPoint(scenePos);
+        return true;
+    }
 
     return false;
+}
+//==============================================================================
+void ImageViewer::addPolygonPoint(const QPointF &point)
+{
+    m_polygonPoints.append(point);
+
+    QGraphicsEllipseItem* vertex = ui->gv->scene()->addEllipse(point.x() - 15, point.y() - 15, 30, 30,
+                                                               QPen(Qt::blue), QBrush(Qt::blue));
+    m_vertexItems.append(vertex);
+
+    if (m_polygonPoints.size() > 1)
+    {
+        QGraphicsLineItem* edge = ui->gv->scene()->addLine(QLineF(m_polygonPoints[m_polygonPoints.size() - 2],
+                                                                  m_polygonPoints.last()), QPen(Qt::blue));
+        m_edgeItems.append(edge);
+    }
+}
+//==============================================================================
+void ImageViewer::completePolygon()
+{
+    if (m_polygonPoints.size() < 3)
+    {
+        cancelPolygon();
+        return;
+    }
+
+    QGraphicsLineItem* edge = ui->gv->scene()->addLine(QLineF(m_polygonPoints.last(), m_polygonPoints.first()), QPen(Qt::blue));
+    m_edgeItems.append(edge);
+
+    m_currentPolygon = ui->gv->scene()->addPolygon(QPolygonF(m_polygonPoints), QPen(Qt::blue), QBrush(QColor(0, 0, 255, 50)));
+
+    m_polygons.append(m_currentPolygon);
+
+    m_polygonPoints.clear();
+    m_vertexItems.clear();
+    m_edgeItems.clear();
+
+    setMode(Mode_None);
+}
+//==============================================================================
+void ImageViewer::cancelPolygon()
+{
+    for (auto vertex : m_vertexItems)
+    {
+        ui->gv->scene()->removeItem(vertex);
+        delete vertex;
+    }
+
+    for (auto edge : m_edgeItems)
+    {
+        ui->gv->scene()->removeItem(edge);
+        delete edge;
+    }
+
+    m_polygonPoints.clear();
+    m_vertexItems.clear();
+    m_edgeItems.clear();
+
+    setMode(Mode_None);
 }
 //==============================================================================
 bool ImageViewer::eventEditFilter(QObject *obj, QEvent *event)

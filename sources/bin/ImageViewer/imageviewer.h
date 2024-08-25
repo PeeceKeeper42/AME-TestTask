@@ -2,6 +2,7 @@
 #define IMAGEVIEWER_H
 //==============================================================================
 #include <QWidget>
+#include <QGraphicsPolygonItem>
 
 //==============================================================================
 namespace Ui {
@@ -22,6 +23,12 @@ private:
     Ui::ImageViewer *ui;
     ImageViewerMode m_currentMode;
 
+    QVector<QPointF> m_polygonPoints;
+    QGraphicsPolygonItem *m_currentPolygon;
+    QList<QGraphicsPolygonItem*> m_polygons;
+    QList<QGraphicsEllipseItem*> m_vertexItems;
+    QList<QGraphicsLineItem*> m_edgeItems;
+
     const qreal scaleMultiplier = 1.15;
 
     qreal m_currentScale = 1.00;
@@ -36,6 +43,10 @@ private:
     void updateUi();
     void showMode();
     void setMode(ImageViewerMode mode);
+
+    void addPolygonPoint(const QPointF &point);
+    void completePolygon();
+    void cancelPolygon();
 
 private slots:
     void onBtnLoadImage();
