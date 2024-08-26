@@ -97,6 +97,20 @@ li.checked::marker { content: &quot;\2612&quot;; }
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="btnEditPolygonFinish">
+       <property name="text">
+        <string>Завершить изменение полигона</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnEditPolygonDelete">
+       <property name="text">
+        <string>Удалить полигон</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer name="verticalSpacer">
        <property name="orientation">
         <enum>Qt::Vertical</enum>

@@ -46,10 +46,13 @@ void ImageViewer::createConnections()
 {
     connect(ui->btnLoadImage,&QPushButton::clicked, this, &ImageViewer::onBtnLoadImage);
 
-    connect(ui->btnCreatePolygonCancel,&QPushButton::clicked, this, &ImageViewer::onBtnCreatePolygonCancel);
-    connect(ui->btnCreatePolygon,&QPushButton::clicked, this, &ImageViewer::onBtnCreatePolygon);
-    connect(ui->btnEditPolygon,&QPushButton::clicked, this, &ImageViewer::onBtnEditPolygon);
-    connect(ui->btnEditPolygonCancel,&QPushButton::clicked, this, &ImageViewer::onBtnEditPolygonCancel);
+    connect(ui->btnCreatePolygonCancel, &QPushButton::clicked, this, &ImageViewer::onBtnCreatePolygonCancel);
+    connect(ui->btnCreatePolygon, &QPushButton::clicked, this, &ImageViewer::onBtnCreatePolygon);
+    connect(ui->btnEditPolygon, &QPushButton::clicked, this, &ImageViewer::onBtnEditPolygon);
+    connect(ui->btnEditPolygonCancel, &QPushButton::clicked, this, &ImageViewer::onBtnEditPolygonCancel);
+    connect(ui->btnEditPolygonFinish, &QPushButton::clicked, this, &ImageViewer::onBtnEditPolygonFinish);
+    connect(ui->btnEditPolygonDelete, &QPushButton::clicked, this, &ImageViewer::onBtnEditPolygonDelete);
+
 }
 //==============================================================================
 void ImageViewer::updateUi()
@@ -58,6 +61,9 @@ void ImageViewer::updateUi()
     ui->btnCreatePolygonCancel->setEnabled(m_currentMode == Mode_Creating && m_pictureLoaded);
     ui->btnEditPolygon->setEnabled(m_currentMode == Mode_None && m_pictureLoaded);
     ui->btnEditPolygonCancel->setEnabled(m_currentMode == Mode_Editing && m_pictureLoaded);
+    ui->btnEditPolygonFinish->setEnabled(m_currentMode == Mode_Editing && m_currentPolygon);
+    ui->btnEditPolygonDelete->setEnabled(m_currentMode == Mode_Editing && m_currentPolygon);
+
 }
 //==============================================================================
 void ImageViewer::onBtnLoadImage()
@@ -108,7 +114,85 @@ void ImageViewer::onBtnCreatePolygonCancel()
 //==============================================================================
 void ImageViewer::onBtnEditPolygon() { setMode(Mode_Editing); }
 //==============================================================================
-void ImageViewer::onBtnEditPolygonCancel() { setMode(Mode_None); }
+void ImageViewer::onBtnEditPolygonCancel()
+{
+    if (m_currentPolygon)
+    {
+        m_currentPolygon->setPen(QPen(Qt::blue));
+        m_currentPolygon->setBrush(QBrush(QColor(0, 0, 255, 50)));
+
+        for (auto vertex : m_vertexItems)
+        {
+            vertex->setPen(QPen(Qt::blue));
+            vertex->setBrush(QBrush(Qt::blue));
+            vertex->setRect(vertex->rect().adjusted(10, 10, -10, -10));
+        }
+
+        for (auto edge : m_edgeItems)
+        {
+            edge->setPen(QPen(Qt::blue));
+        }
+
+        m_currentPolygon = nullptr;
+        m_vertexItems.clear();
+        m_edgeItems.clear();
+    }
+
+    setMode(Mode_None);
+}
+//==============================================================================
+void ImageViewer::onBtnEditPolygonFinish()
+{
+    if (m_currentPolygon)
+    {
+        m_currentPolygon->setPen(QPen(Qt::blue));
+        m_currentPolygon->setBrush(QBrush(QColor(0, 0, 255, 50)));
+        for (auto vertex : m_vertexItems)
+        {
+            vertex->setPen(QPen(Qt::blue));
+            vertex->setBrush(QBrush(Qt::blue));
+            vertex->setRect(vertex->rect().adjusted(10, 10, -10, -10));
+        }
+
+        for (auto edge : m_edgeItems)
+        {
+            edge->setPen(QPen(Qt::blue));
+        }
+
+        m_currentPolygon = nullptr;
+        setMode(Mode_None);
+    }
+}
+//==============================================================================
+void ImageViewer::onBtnEditPolygonDelete()
+{
+    if (!m_currentPolygon) return;
+
+    for (auto vertex : m_selectedVertexItems)
+    {
+        ui->gv->scene()-
+        ui->gv->scene()->removeItem(vertex);
+        delete vertex;
+    }
+    m_selectedVertexItems.clear();
+
+    for (auto edge : m_selectedEdgeItems)
+    {
+        ui->gv->scene()->removeItem(edge);
+        delete edge;
+    }
+    m_selectedEdgeItems.clear();
+
+    ui->gv->scene()->removeItem(m_currentPolygon);
+    m_polygons.removeOne(m_currentPolygon);
+    delete m_currentPolygon;
+    m_currentPolygon = nullptr;
+
+    setMode(Mode_None);
+    m_polygonPoints.clear();
+    updateUi();
+}
+
 //==============================================================================
 bool ImageViewer::eventFilter(QObject *obj, QEvent *event)
 {
@@ -256,11 +340,69 @@ void ImageViewer::cancelPolygon()
 //==============================================================================
 bool ImageViewer::eventEditFilter(QObject *obj, QEvent *event)
 {
-    Q_UNUSED(obj)
-    Q_UNUSED(event)
+    if (obj != ui->gv || m_currentMode != Mode_Editing) return false;
+
+    QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
+    if (event->type() == QEvent::MouseButtonPress && mouseEvent->button() == Qt::LeftButton)
+    {
+        QPointF scenePos = ui->gv->mapToScene(mouseEvent->pos());
+
+        // Проверка на попадание в полигон
+        QGraphicsItem* clickedItem = ui->gv->scene()->itemAt(scenePos, QTransform());
+
+        // Если клик был по полигону
+        if (clickedItem && clickedItem->type() == QGraphicsPolygonItem::Type)
+        {
+            // Сбрасываем выделение предыдущего полигона, если он был
+            if (m_currentPolygon)
+            {
+                m_currentPolygon->setPen(QPen(Qt::blue, 3));
+                m_currentPolygon->setBrush(QBrush(QColor(0, 0, 255, 50)));
+
+                for (auto vertex : m_selectedVertexItems)
+                {
+                    ui->gv->scene()->removeItem(vertex);
+                    delete vertex;
+                }
+                m_selectedVertexItems.clear();
+
+                for (auto edge : m_selectedEdgeItems)
+                {
+                    ui->gv->scene()->removeItem(edge);
+                    delete edge;
+                }
+                m_selectedEdgeItems.clear();
+            }
+
+            // Устанавливаем новый выбранный полигон
+            m_currentPolygon = qgraphicsitem_cast<QGraphicsPolygonItem*>(clickedItem);
+            m_currentPolygon->setPen(QPen(Qt::green, 3));
+            m_currentPolygon->setBrush(QBrush(QColor(0, 255, 0, 50)));
+
+            // Выделяем вершины и ребра выбранного полигона
+            for (const QPointF& point : m_currentPolygon->polygon())
+            {
+                QGraphicsEllipseItem* vertex = ui->gv->scene()->addEllipse(point.x() - 15, point.y() - 15, 30, 30,
+                                                                           QPen(Qt::green, 3), QBrush(Qt::green));
+                m_selectedVertexItems.append(vertex);
+            }
+            for (int i = 0; i < m_currentPolygon->polygon().size(); ++i)
+            {
+                QPointF p1 = m_currentPolygon->polygon().at(i);
+                QPointF p2 = m_currentPolygon->polygon().at((i + 1) % m_currentPolygon->polygon().size());
+
+                QGraphicsLineItem* edge = ui->gv->scene()->addLine(QLineF(p1, p2), QPen(Qt::green, 3));
+                m_selectedEdgeItems.append(edge);
+            }
+
+            updateUi();
+            return true;
+        }
+    }
 
     return false;
 }
+
 //==============================================================================
 void ImageViewer::wheelEvent(QWheelEvent *event)
 {

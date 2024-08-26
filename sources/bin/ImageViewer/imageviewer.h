@@ -10,6 +10,7 @@ class ImageViewer;
 }
 //==============================================================================
 enum ImageViewerMode: quint8;
+struct PolygonWithBordersItem;
 //==============================================================================
 class ImageViewer : public QWidget
 {
@@ -28,6 +29,8 @@ private:
     QList<QGraphicsPolygonItem*> m_polygons;
     QList<QGraphicsEllipseItem*> m_vertexItems;
     QList<QGraphicsLineItem*> m_edgeItems;
+    QList<QGraphicsEllipseItem*> m_selectedVertexItems;
+    QList<QGraphicsLineItem*> m_selectedEdgeItems;
 
     const qreal scaleMultiplier = 1.15;
 
@@ -55,6 +58,8 @@ private slots:
     void onBtnCreatePolygonCancel();
     void onBtnEditPolygon();
     void onBtnEditPolygonCancel();
+    void onBtnEditPolygonFinish();
+    void onBtnEditPolygonDelete();
 
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
@@ -72,6 +77,12 @@ enum ImageViewerMode: quint8
     Mode_Creating   = 2,
     Mode_Editing    = 3,
 };
-
+//==============================================================================
+struct PolygonWithBordersItem
+{
+    QList<QGraphicsEllipseItem*> m_vertexItems;
+    QList<QGraphicsLineItem*> m_edgeItems;
+    QGraphicsPolygonItem *m_currentPolygon;
+};
 //==============================================================================
 #endif // IMAGEVIEWER_H
